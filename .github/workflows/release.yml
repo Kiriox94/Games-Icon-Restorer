@@ -1,13 +1,18 @@
 name: Build and Release
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The Release Version'
+        required: true
+        default: '1.0.0'
+        type: string
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
+    container: devkitpro/devkita64:latest
 
     steps:
     - name: Checkout repository
@@ -16,27 +21,21 @@ jobs:
     - name: Build with Make
       run: make
 
-  release:
-    runs-on: ubuntu-latest
-
-    needs: build
-
-    steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${{ inputs.version }}
+        release_name: Release ${{ inputs.version }}
 
     - name: Upload Release Asset
       id: upload-release-asset
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./GamesIconRestorer.nro  # Update this with the actual path to your compiled binary
-        asset_name: GamesIconRestorer.nro      # Update this with the actual name of your compiled binary
+        asset_path: ./GamesIconRestorer.nro
+        asset_name: GamesIconRestorer.nro
         asset_content_type: application/octet-stream
